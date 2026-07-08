@@ -1,25 +1,18 @@
-# AI-Powered Employee Database Assistant (NLP & MongoDB)
+# AI-Powered Teams Employee Database Bot (Wink NLP & MongoDB)
 
-A state-of-the-art AI-powered chatbot assistant that allows users to ask questions about employee data in plain natural language. The backend uses the offline-friendly **Wink NLP** framework to perform tokenization, lemmatization, custom entity extraction (for names and departments), and intent classification (using Jaccard similarity and keyword boosting). It maps parsed user intent directly to Mongoose queries and returns interactive, human-readable responses.
+A conversational AI assistant integrated with Microsoft Teams that allows users to query, search, and analyze employee records in plain natural language. The backend uses the offline-friendly **Wink NLP** framework to perform tokenization, lemmatization, custom entity extraction (for names, departments, designations, and cities), and intent classification (using Jaccard similarity and keyword boosting). It maps parsed user queries directly to MongoDB query filters and aggregations.
+
+The project features a modular two-tier server architecture and supports offline testing using the **Teams App Test Tool**.
 
 ---
 
 ## Key Features
 
-- **Local NLP Pipeline:** Powered by **Wink NLP** (`wink-eng-lite-web-model`), eliminating external API request delays or usage caps.
-- **Dynamic Entity Extraction:** Dynamically registers employee names and department entities fetched from the MongoDB database to improve query accuracy.
-- **Intent Classification:** Classifies queries (e.g., counting, listing, timeline, or salary analytics) using Jaccard similarity combined with heuristic keyword boosting.
-- **Interactive UI:** A premium, glassmorphic dark-themed chat interface with click-to-query suggestion chips and a highly responsive design.
-- **Auto-Seeding:** Automatically seeds the database with sample employee records if the collection is empty.
-
----
-
-## Tech Stack
-
-- **Frontend:** HTML5, CSS3 (Vanilla Glassmorphic Design), Vanilla JavaScript (ES6)
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB Atlas, Mongoose
-- **NLP Engine:** Wink NLP (`wink-nlp`, `wink-eng-lite-web-model`)
+- **23 Conversational Operations:** Supports simple counting, advanced multi-attribute profile search, range queries, department/employee comparison metrics, and salary analytics.
+- **Intelligent Typo Correction:** Implements a Levenshtein distance fuzzy matching did-you-mean helper that recommends the top 3 closest employee names if an exact search match fails.
+- **Dynamic Entity Matching:** Dynamically trains the Wink NLP engine on startup using employee names, departments, and cities fetched from MongoDB Atlas.
+- **Zero-Azure Local Debugging:** Fully configured with the Teams App Test Tool (`teamsapptester`) for offline sandbox testing.
+- **Auto-Seeding:** Automatically seeds your MongoDB database with sample records if the collection is empty.
 
 ---
 
@@ -27,77 +20,97 @@ A state-of-the-art AI-powered chatbot assistant that allows users to ask questio
 
 ```text
 teams-mongodb-bot/
+├── appPackage/
+│   ├── manifest.json        # Teams app configuration manifest
+│   ├── color.png            # Bot color icon placeholder
+│   └── outline.png          # Bot outline icon placeholder
 ├── models/
-│   └── Employee.js          # Mongoose schema definition
-├── public/
-│   ├── index.html           # Premium UI structure
-│   ├── style.css            # Dark glassmorphic stylesheet
-│   └── script.js            # Frontend interactivity & suggestions
+│   └── Employee.js          # Mongoose database schema
 ├── services/
-│   ├── entityExtractor.js   # Wink NLP custom entity trainer
-│   ├── nlpService.js        # Main NLP pipeline, Jaccard classifier, and query mapper
-│   ├── parser.js            # Legacy rule-based query parser (kept for backwards-compatibility)
-│   └── trainer.js           # Utterance preprocessor & intent training data
-├── .env                     # Local environment configurations
-├── package.json             # Dependencies and scripts
-└── server.js                # Express app entry point, seeding, and API endpoints
+│   ├── entityExtractor.js   # Dynamic custom entity learning (Wink NLP)
+│   ├── nlpService.js        # NLP pipeline, intent overrides, and tag parsers
+│   ├── parser.js            # Router bridge
+│   └── trainer.js           # Preprocessed lemma sets & training corpus
+├── .env                     # Local environment variable configuration
+├── .gitignore               # Configured to exclude node_modules & credentials
+├── bot.js                   # Teams ActivityHandler (forwards messages to Express)
+├── index.js                 # Teams Bot webhook server (Port 3978)
+├── package.json             # NPM dependencies & running scripts
+└── server.js                # Main Express server & MongoDB query mapper (Port 3006)
 ```
 
 ---
 
-## Setup & Installation
+## Setup & Local Testing
 
 ### 1. Clone the Project
-
-Download or clone the files to your working directory.
+Place the project files inside your working directory.
 
 ### 2. Configure Environment Variables
-
 Create a `.env` file in the root of the project:
-
 ```env
-PORT=3005
+# Server Port (Express Backend)
+PORT=3006
+
+# MongoDB Connection String (replace with your Atlas credentials)
 MONGODB_URI=mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/companyDB?retryWrites=true&w=majority
+
+# Microsoft Teams Bot Configurations
+BOT_PORT=3978
+BACKEND_URL=http://127.0.0.1:3006/chat
+
+# Azure Credentials (keep empty for local emulator/test-tool testing)
+MicrosoftAppId=
+MicrosoftAppPassword=
+MicrosoftAppTenantId=
+MicrosoftAppType=MultiTenant
 ```
 
-*Note: Replace `<username>`, `<password>`, and `<your-cluster>` with your actual MongoDB Atlas cluster credentials.*
-
 ### 3. Install Dependencies
-
-Install all required Node.js packages:
-
+Run this command in the project directory to install all packages:
 ```bash
 npm install
 ```
 
-### 4. Run the Application
+### 4. Run the Servers (Open 3 Terminals)
 
-Start the development server with hot-reloading (via nodemon):
+- **Terminal 1 (Express Backend):**
+  ```bash
+  npm run dev
+  ```
+- **Terminal 2 (Teams Bot Webhook):**
+  ```bash
+  npm run bot-dev
+  ```
+- **Terminal 3 (Teams App Test Tool):**
+  ```bash
+  npm run test-tool
+  ```
 
-```bash
-npm run dev
-```
+### 5. Start Testing in the Browser
+Open your browser and navigate to:
+**[http://localhost:56150](http://localhost:56150)**
+
+You will see a simulated Microsoft Teams chat sandbox environment where you can query your bot.
 
 ---
 
-## Supported Natural Language Queries
+## Supported Natural Language Operations
 
-You can type conversational queries into the chat box or use the quick suggestion chips:
+Try sending any of these queries in your test tool:
 
-1. **Count Query:**
-   - *How many employees are there?*
-   - *What is the total employee count?*
-2. **List All:**
-   - *List all employees.*
-   - *Show all employee records.*
-3. **Department Filters (Dynamic):**
-   - *Show employees in the IT department.*
-   - *Who works in Finance?*
-4. **Salary Analytics:**
-   - *What is the average salary?*
-   - *Show the highest paid employee.*
-   - *Find the lowest salary.*
-   - *What is the salary of Prince Kumar?*
-5. **Timeline Queries:**
-   - *Who joined recently?*
-   - *List recent hires.*
+| Operation Category | Example Chat Queries |
+| :--- | :--- |
+| **Greetings & Help** | `"hii"`, `"good morning"`, `"help"`, `"what can you do?"` |
+| **Search & Counts** | `"How many employees are there?"`, `"List all employees"` |
+| **Lookup by Attributes** | `"Find employee with email bob.s@company.com"`, `"Who has phone number 1234567894?"` |
+| **City-wise Filtering** | `"Show employees from Chicago"`, `"List employees of Delhi"` |
+| **Headcount Analytics** | `"Employee count by department"`, `"Which department has the most employees?"` |
+| **Salary Ranges** | `"salary above 70000"`, `"salary between 50000 and 80000"` |
+| **Salary Leaders** | `"Top 5 highest paid employees"`, `"Top 3 lowest salary employees"` |
+| **Department Analytics** | `"Average salary in HR"`, `"Highest salary in Finance"` |
+| **Employee ID Check** | `"Does EMP005 exist?"`, `"Is EMP025 a valid employee?"` |
+| **Contact Retrieval** | `"Rahul's email"`, `"Phone number of Alice"` |
+| **Head-to-head Comparisons** | `"Compare Alice Johnson and Bob Smith"`, `"Compare HR and IT"` |
+| **Fuzzy Spell Checks** | `"Show Princ"` *(will recommend Prince)*, `"Search Bob Smth"` |
+| **Directory Directories** | `"List all departments"`, `"List job roles"` |
