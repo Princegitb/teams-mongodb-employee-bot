@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.15/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.15",
+  "version": "1.0.0",
+  "id": "c869e5d4-42f1-4db8-b5ef-1a40c6c23560",
+  "packageName": "com.microsoft.teams.employeechat",
+  "developer": {
+    "name": "Developer",
+    "websiteUrl": "https://localhost",
+    "privacyUrl": "https://localhost/privacy",
+    "termsOfUseUrl": "https://localhost/termsofuse"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "AI Employee Assistant",
+    "full": "AI Employee Assistant Bot"
+  },
+  "description": {
+    "short": "Search and analyze employee databases.",
+    "full": "A natural language query bot integrated with MongoDB Atlas to search, filter, and summarize employee details."
+  },
+  "accentColor": "#6366F1",
+  "bots": [
+    {
+      "botId": "c869e5d4-42f1-4db8-b5ef-1a40c6c23560",
+      "scopes": [
+        "personal",
+        "groupchat"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": []
+}

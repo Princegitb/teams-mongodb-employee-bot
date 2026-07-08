@@ -1,0 +1,35 @@
+{
+  "name": "employee-ai-chat",
+  "version": "1.0.0",
+  "description": "AI-powered Employee Database Assistant using Node.js, Express, MongoDB Atlas, and a rule-based parser.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "bot": "node index.js",
+    "bot-dev": "nodemon index.js",
+    "test-tool": "teamsapptester"
+  },
+  "keywords": [
+    "mongodb",
+    "express",
+    "nlp",
+    "chatbot",
+    "employee"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "botbuilder": "^4.23.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.1",
+    "wink-eng-lite-web-model": "^1.8.1",
+    "wink-nlp": "^2.4.0"
+  },
+  "devDependencies": {
+    "@microsoft/teams-app-test-tool": "^0.2.27",
+    "nodemon": "^3.1.3"
+  }
+}
