@@ -44,10 +44,13 @@ teams-mongodb-bot/
 ## Setup & Local Testing
 
 ### 1. Clone the Project
+
 Place the project files inside your working directory.
 
 ### 2. Configure Environment Variables
+
 Create a `.env` file in the root of the project:
+
 ```env
 # Server Port (Express Backend)
 PORT=3006
@@ -67,7 +70,9 @@ MicrosoftAppType=MultiTenant
 ```
 
 ### 3. Install Dependencies
+
 Run this command in the project directory to install all packages:
+
 ```bash
 npm install
 ```
@@ -75,19 +80,25 @@ npm install
 ### 4. Run the Servers (Open 3 Terminals)
 
 - **Terminal 1 (Express Backend):**
+
   ```bash
   npm run dev
   ```
+
 - **Terminal 2 (Teams Bot Webhook):**
+
   ```bash
   npm run bot-dev
   ```
+
 - **Terminal 3 (Teams App Test Tool):**
+
   ```bash
   npm run test-tool
   ```
 
 ### 5. Start Testing in the Browser
+
 Open your browser and navigate to:
 **[http://localhost:56150](http://localhost:56150)**
 

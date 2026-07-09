@@ -1,11 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const Employee = require('./models/Employee');
 const { parseMessage } = require('./services/parser');
 const { initializeNLP } = require('./services/nlpService');
+const conversation = require('./services/conversationModule');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +16,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Sample Data to seed if Database is empty
 const sampleEmployees = [
@@ -55,7 +58,7 @@ mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log('Connected to MongoDB Atlas successfully.');
     await seedDatabase();
-    
+
     // Initialize the NLP service with employee names and departments from the database
     const employees = await Employee.find({});
     await initializeNLP(employees);
@@ -77,31 +80,15 @@ app.post('/chat', async (req, res) => {
     return res.status(500).json({ reply: 'Database is currently offline. Please try again later.' });
   }
 
-  // Check for simple greetings and help queries
-  const greetings = [
-    'hi', 'hii', 'hiii', 'hello', 'hey', 'greetings', 'hola', 'yo', 
-    'hi there', 'hello there', 'hey there', 'good morning', 'good afternoon', 'good evening'
-  ];
-  const helpPrompts = ['help', 'info', 'support', 'what can you do', 'menu', 'who are you'];
-  
-  const normalizedMsg = message.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-  
-  if (greetings.includes(normalizedMsg)) {
-    return res.json({ reply: '👋 Hello! I am your AI Employee Assistant. How can I help you search or analyze the employee database today?' });
+  // ── General Conversation Layer ──────────────────────────────────────────
+  // Check if the message is a general conversational query (greeting, goodbye,
+  // thank you, identity, help, small talk) BEFORE hitting the DB pipeline.
+  // If handled, return the reply immediately — MongoDB is never queried.
+  const conversationResult = conversation.handle(message);
+  if (conversationResult.handled) {
+    return res.json({ reply: conversationResult.reply });
   }
-  
-  if (helpPrompts.includes(normalizedMsg)) {
-    return res.json({ 
-      reply: 'ℹ️ **AI Employee Assistant capabilities:**\n\n' +
-             'I can help you search, filter, and analyze employee records from the database. Try asking:\n\n' +
-             '• "How many employees are there?"\n' +
-             '• "List all employees"\n' +
-             '• "Show IT employees"\n' +
-             '• "What is the average salary?"\n' +
-             '• "Show the highest paid employee"\n' +
-             '• "What is the salary of Bob Smith?"'
-    });
-  }
+  // ────────────────────────────────────────────────────────────────────────
 
   try {
     // 1. Analyze user message via NLP parser service
@@ -593,4 +580,3 @@ function getLevenshteinDistance(a, b) {
   }
   return matrix[b.length][a.length];
 }
-

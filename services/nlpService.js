@@ -29,7 +29,7 @@ async function initializeNLP(employees) {
   try {
     // 1. Train custom entities with names and departments from the DB
     loadCustomEntities(employees);
-    
+
     // 2. Preprocess and load intent utterances into memory
     trainedDataset = getPreparedTrainingData();
     console.log('[NLP Service] NLP Engine initialized and trained successfully.');
@@ -124,13 +124,13 @@ function processMessage(message) {
 
   // 3. Preprocess/lemmatize the message for intent classification
   const queryTokens = preprocessText(message);
-  
+
   // 4. Classify intent
   let classification = classifyIntent(queryTokens);
 
   // 5. Extract entities using wink-nlp's learned custom entities
   const customEntities = doc.customEntities().out(its.detail);
-  
+
   const allNames = [];
   const allDepts = [];
   const allDesignations = [];
@@ -195,7 +195,16 @@ function processMessage(message) {
     classification = { intent: 'compare_employees', confidence: 1.0 };
   } else if (email || phone || idMatch) {
     classification = { intent: 'employee_lookup_attr', confidence: 1.0 };
-  } else if (city && classification.intent !== 'employees_by_designation') {
+  } else if ((department && designation) || (designation && city) || (department && city)) {
+    // Multi-condition search (e.g. software engineers in Seattle, managers in HR)
+    classification = { intent: 'multi_condition_search', confidence: 1.0 };
+  } else if (designation && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_by_name' || classification.intent === 'employee_count')) {
+    classification = { intent: 'employees_by_designation', confidence: 0.9 };
+  } else if (department && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_count' || (classification.intent === 'employee_by_name' && !name))) {
+    classification = { intent: 'employees_by_department', confidence: 0.9 };
+  } else if (name && (classification.intent === 'list_all' || classification.intent === 'unknown')) {
+    classification = { intent: 'employee_by_name', confidence: 0.9 };
+  } else if (city && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_count')) {
     classification = { intent: 'city_filter', confidence: 0.9 };
   }
 
@@ -224,14 +233,14 @@ function processMessage(message) {
         return isPropn && !ACTION_VERBS_AND_PRONOUNS.has(val);
       })
       .map(t => t.out(its.value));
-    
+
     if (propnTokens.length > 0) {
       name = propnTokens.join(' ');
     } else {
       const nameTokens = doc.tokens()
         .filter(t => t.out(its.type) === 'word' && t.out(its.pos) !== 'VERB')
         .map(t => t.out(its.value));
-      
+
       const filtered = nameTokens.filter(w => !ACTION_VERBS_AND_PRONOUNS.has(w.toLowerCase()) && !['who', 'is', 'about', 'details', 'tell', 'show', 'salary', 'info'].includes(w.toLowerCase()));
       if (filtered.length > 0) {
         name = filtered.join(' ');
@@ -243,7 +252,7 @@ function processMessage(message) {
   if (classification.intent === 'unknown') {
     const searchVerbs = ['show', 'find', 'search', 'who is', 'tell me about', 'get', 'details of', 'info on'];
     const cleanMsg = message.toLowerCase().trim();
-    
+
     let matchedVerb = searchVerbs.find(verb => cleanMsg.startsWith(verb));
     if (matchedVerb) {
       classification = { intent: 'employee_by_name', confidence: 0.8 };
