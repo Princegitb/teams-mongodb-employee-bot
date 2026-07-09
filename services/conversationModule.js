@@ -103,7 +103,7 @@ const IDENTITY_PATTERNS = [
   'what is your name', 'whats your name',
   'introduce yourself', 'tell me about yourself',
   'what do you do', 'are you a bot', 'are you human',
-  'who made you', 'who created you', 'who built you'
+  'who made you', 'who created you', 'who built you',
 ];
 
 const IDENTITY_REPLY =
@@ -128,7 +128,7 @@ const HELP_PATTERNS = [
   'what can you do', 'what can u do',
   'features', 'commands', 'available commands',
   'show commands', 'list commands', 'what are your features',
-  'capabilities', 'what do you support', 'menu', 'options'
+  'capabilities', 'what do you support', 'menu', 'options', 'list all the features u can perform', 'list all the features you can perform',
 ];
 
 const HELP_REPLY =
@@ -187,6 +187,35 @@ const SMALLTALK_REPLIES = [
   "Everything is running smoothly! 🚀 How can I assist you today?",
   "Feeling productive! 😄 What employee information are you looking for?",
   "All systems go! 💪 How can I help you today?"
+];
+
+// ============================================================
+// 7. ACKNOWLEDGEMENT MODULE
+// ============================================================
+// Handles affirmative/neutral short responses like "ok", "okay",
+// "alright", "sure", "got it", "noted", "cool", "fine", etc.
+
+const ACKNOWLEDGEMENT_PATTERNS = [
+  'ok', 'okay', 'ok ok',
+  'alright', 'alright then',
+  'sure', 'sure thing',
+  'got it', 'got it thanks',
+  'noted', 'noted thanks',
+  'cool', 'cool thanks',
+  'fine', 'sounds good',
+  'understood', 'makes sense',
+  'nice', 'great', 'perfect',
+  'awesome', 'wow', 'ohh', 'oh ok', 'oh okay', 'ohh ok',
+  'roger', 'roger that',
+  'yep', 'yup', 'yes', 'yeah', 'ya', 'yaa'
+];
+
+const ACKNOWLEDGEMENT_REPLIES = [
+  'Great! 😊 Is there anything else I can help you with?',
+  'Alright! Let me know if you need anything else.',
+  'Sure! Feel free to ask me anything about the employee database.',
+  'Got it! 👍 What else can I help you with?',
+  'Perfect! Ask me anything anytime. 😊'
 ];
 
 // ============================================================
@@ -279,6 +308,11 @@ function handle(message) {
   // --- Module 6: Small Talk ---
   if (matchesAny(normalized, SMALLTALK_PATTERNS)) {
     return { handled: true, reply: pickRandom(SMALLTALK_REPLIES) };
+  }
+
+  // --- Module 7: Acknowledgement ---
+  if (matchesAny(normalized, ACKNOWLEDGEMENT_PATTERNS)) {
+    return { handled: true, reply: pickRandom(ACKNOWLEDGEMENT_REPLIES) };
   }
 
   // Not a conversational message — pass to DB layer
