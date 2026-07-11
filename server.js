@@ -8,10 +8,48 @@ const Employee = require('./models/Employee');
 const { parseMessage } = require('./services/parser');
 const { initializeNLP } = require('./services/nlpService');
 const conversation = require('./services/conversationModule');
+const {
+  ConfigurationServiceClientCredentialFactory,
+  createBotFrameworkAuthenticationFromConfiguration,
+  CloudAdapter
+} = require('botbuilder');
+const { TeamsBot } = require('./bot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
+
+// Initialize credentials factory using Microsoft App variables from .env
+const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
+  MicrosoftAppId: process.env.MicrosoftAppId,
+  MicrosoftAppPassword: process.env.MicrosoftAppPassword,
+  MicrosoftAppTenantId: process.env.MicrosoftAppTenantId,
+  MicrosoftAppType: process.env.MicrosoftAppType || 'MultiTenant'
+});
+
+const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
+
+// Create the CloudAdapter that handles communication with Azure Bot Service / Microsoft Teams
+const adapter = new CloudAdapter(botFrameworkAuthentication);
+
+// Catch-all for unhandled adapter turn errors
+adapter.onTurnError = async (context, error) => {
+  console.error(`\n [Teams Bot Server Error] Unhandled error: ${error}`);
+  try {
+    await context.sendTraceActivity(
+      'OnTurnError Trace',
+      `${error}`,
+      'https://www.botframework.com/schemas/error',
+      'TurnError'
+    );
+  } catch (traceError) {
+    console.error('Failed to send trace activity:', traceError);
+  }
+  await context.sendActivity('The bot encountered an error or bug during processing.');
+};
+
+// Instantiate our Teams Bot
+const bot = new TeamsBot();
 
 // Middleware
 app.use(cors());
@@ -93,12 +131,12 @@ app.post('/chat', async (req, res) => {
   try {
     // 1. Analyze user message via NLP parser service
     const parsed = parseMessage(message);
-    const { 
-      intent, department, name, designation, city, email, phone, 
-      numbers, rangeOperator, sortDirection, allNames, allDepts, 
-      allCities, allDesignations, confidence 
+    const {
+      intent, department, name, designation, city, email, phone,
+      numbers, rangeOperator, sortDirection, allNames, allDepts,
+      allCities, allDesignations, confidence
     } = parsed;
-    
+
     console.log(`[NLP Analysis] Input: "${message}" -> Intent: ${intent} (confidence: ${confidence || 0})`);
 
     let reply = '';
@@ -433,11 +471,11 @@ app.post('/chat', async (req, res) => {
 
       case 'multi_condition_search': {
         const query = {};
-        
+
         if (department) query.department = new RegExp(`^${department}$`, 'i');
         if (designation) query.designation = new RegExp(designation, 'i');
         if (city) query.city = new RegExp(`^${city}$`, 'i');
-        
+
         if (rangeOperator && numbers.length >= 1) {
           if (rangeOperator === 'above') query.salary = { $gt: numbers[0] };
           else if (rangeOperator === 'below') query.salary = { $lt: numbers[0] };
@@ -580,3 +618,13 @@ function getLevenshteinDistance(a, b) {
   }
   return matrix[b.length][a.length];
 }
+
+// Register the API endpoint where Microsoft Teams/Azure Bot Service will forward activities
+app.post('/api/messages', async (req, res) => {
+  try {
+    await adapter.process(req, res, (context) => bot.run(context));
+  } catch (err) {
+    console.error('Error processing Teams activity:', err);
+    res.status(500).send('Error processing activity');
+  }
+});
