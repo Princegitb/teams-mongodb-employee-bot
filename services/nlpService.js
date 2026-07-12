@@ -188,6 +188,32 @@ function processMessage(message) {
     sortDirection = 'asc';
   }
 
+  // Fallback heuristics for entity extraction if wink-nlp custom entity is not found
+  // Executed BEFORE overrides to ensure robust multi-condition parsing
+  if (!department) {
+    const depts = ['hr', 'it', 'finance', 'sales', 'marketing', 'engineering', 'development'];
+    const matchedDept = queryTokens.find(token => depts.includes(token));
+    if (matchedDept) {
+      department = matchedDept.toUpperCase();
+    }
+  }
+
+  if (!designation) {
+    const knownDesignations = ['manager', 'engineer', 'developer', 'analyst', 'specialist', 'architect', 'accountant', 'executive', 'administrator', 'recruiter'];
+    const matched = queryTokens.find(token => knownDesignations.includes(token));
+    if (matched) {
+      designation = matched;
+    }
+  }
+
+  if (!city) {
+    const knownCities = ['york', 'francisco', 'chicago', 'boston', 'angeles', 'miami', 'seattle', 'austin', 'dallas', 'delhi', 'mumbai', 'bangalore'];
+    const matched = queryTokens.find(token => knownCities.includes(token));
+    if (matched) {
+      city = matched;
+    }
+  }
+
   // Override / refine intent based on extracted entities
   if (allDepts.length >= 2) {
     classification = { intent: 'compare_departments', confidence: 1.0 };
@@ -195,34 +221,23 @@ function processMessage(message) {
     classification = { intent: 'compare_employees', confidence: 1.0 };
   } else if (email || phone || idMatch) {
     classification = { intent: 'employee_lookup_attr', confidence: 1.0 };
+  } else if (department && (classification.intent === 'average_salary' || classification.intent === 'highest_salary' || classification.intent === 'lowest_salary' || classification.intent === 'dept_salary_analytics')) {
+    // Override salary queries with department to department stats
+    classification = { intent: 'dept_salary_analytics', confidence: 1.0 };
+  } else if (department && classification.intent === 'employee_count') {
+    // How many employees in IT -> just give stats/count, not list
+    classification = { intent: 'department_stats', confidence: 1.0 };
   } else if ((department && designation) || (designation && city) || (department && city)) {
     // Multi-condition search (e.g. software engineers in Seattle, managers in HR)
     classification = { intent: 'multi_condition_search', confidence: 1.0 };
   } else if (designation && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_by_name' || classification.intent === 'employee_count')) {
     classification = { intent: 'employees_by_designation', confidence: 0.9 };
-  } else if (department && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_count' || (classification.intent === 'employee_by_name' && !name))) {
+  } else if (department && (classification.intent === 'list_all' || classification.intent === 'unknown' || (classification.intent === 'employee_by_name' && !name))) {
     classification = { intent: 'employees_by_department', confidence: 0.9 };
   } else if (name && (classification.intent === 'list_all' || classification.intent === 'unknown')) {
     classification = { intent: 'employee_by_name', confidence: 0.9 };
   } else if (city && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_count')) {
     classification = { intent: 'city_filter', confidence: 0.9 };
-  }
-
-  // Fallback heuristics for entity extraction if wink-nlp custom entity is not found
-  if (classification.intent === 'employees_by_department' && !department) {
-    const depts = ['hr', 'it', 'finance', 'sales', 'marketing', 'engineering'];
-    const matchedDept = queryTokens.find(token => depts.includes(token));
-    if (matchedDept) {
-      department = matchedDept.toUpperCase();
-    }
-  }
-
-  if (classification.intent === 'employees_by_designation' && !designation) {
-    const knownDesignations = ['manager', 'engineer', 'developer', 'analyst', 'specialist', 'architect', 'accountant', 'executive', 'administrator'];
-    const matched = queryTokens.find(token => knownDesignations.includes(token));
-    if (matched) {
-      designation = matched;
-    }
   }
 
   if (classification.intent === 'employee_by_name' && !name) {

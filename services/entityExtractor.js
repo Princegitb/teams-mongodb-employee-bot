@@ -18,7 +18,9 @@ function loadCustomEntities(employees) {
   const departments = new Set(['hr', 'it', 'finance', 'sales', 'marketing', 'engineering']); // defaults
   employees.forEach(emp => {
     if (emp.department) {
-      departments.add(emp.department.toLowerCase().trim());
+      const dept = emp.department.toLowerCase().trim();
+      departments.add(dept);
+      departments.add(dept + 's');
     }
   });
 
@@ -56,15 +58,25 @@ function loadCustomEntities(employees) {
 
   // 3. Gather employee designation patterns
   const designationPatterns = new Set(['manager', 'engineer', 'developer', 'analyst', 'specialist', 'architect', 'accountant', 'executive', 'administrator']); // default keywords
+  // Add plurals for defaults
+  Array.from(designationPatterns).forEach(d => {
+    designationPatterns.add(d + 's');
+    designationPatterns.add(d + 'es');
+  });
+
   employees.forEach(emp => {
     if (emp.designation) {
       const design = emp.designation.toLowerCase().trim();
       designationPatterns.add(design);
+      designationPatterns.add(design + 's');
+      designationPatterns.add(design + 'es');
 
       // Also add individual words if they are long/significant
       design.split(/\s+/).forEach(word => {
         if (word.length > 3 && !['senior', 'lead', 'junior', 'associate'].includes(word)) {
           designationPatterns.add(word);
+          designationPatterns.add(word + 's');
+          designationPatterns.add(word + 'es');
         }
       });
     }
@@ -81,7 +93,9 @@ function loadCustomEntities(employees) {
   const cities = new Set(['new york', 'san francisco', 'chicago', 'boston', 'los angeles', 'miami', 'seattle', 'austin', 'dallas', 'mumbai', 'delhi', 'bangalore']);
   employees.forEach(emp => {
     if (emp.city) {
-      cities.add(emp.city.toLowerCase().trim());
+      const city = emp.city.toLowerCase().trim();
+      cities.add(city);
+      cities.add(city + 's');
     }
   });
 
