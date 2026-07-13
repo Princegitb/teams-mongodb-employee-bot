@@ -227,8 +227,13 @@ function processMessage(message) {
   } else if (department && classification.intent === 'employee_count') {
     // How many employees in IT -> just give stats/count, not list
     classification = { intent: 'department_stats', confidence: 1.0 };
-  } else if ((department && designation) || (designation && city) || (department && city)) {
-    // Multi-condition search (e.g. software engineers in Seattle, managers in HR)
+  } else if (
+    (department && designation) ||
+    (designation && city) ||
+    (department && city) ||
+    (rangeOperator && (department || designation || city))
+  ) {
+    // Multi-condition search (e.g. software engineers in Seattle, managers in HR, employees in Delhi earning above 50000)
     classification = { intent: 'multi_condition_search', confidence: 1.0 };
   } else if (designation && (classification.intent === 'list_all' || classification.intent === 'unknown' || classification.intent === 'employee_by_name' || classification.intent === 'employee_count')) {
     classification = { intent: 'employees_by_designation', confidence: 0.9 };
