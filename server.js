@@ -155,7 +155,7 @@ app.post('/chat', async (req, res) => {
       }
 
       case 'list_all': {
-        const query = Employee.find({}, 'name department designation');
+        const query = Employee.find({}, 'name department designation salary');
         if (sortDirection === 'desc') {
           query.sort({ name: -1 });
         } else {
@@ -166,7 +166,7 @@ app.post('/chat', async (req, res) => {
           reply = 'No employees found.';
         } else {
           reply = `Here is the list of all employees:\n\n` +
-            employees.map(emp => `• **${emp.name}** - ${emp.designation} (${emp.department})`).join('\n\n');
+            employees.map(emp => `• **${emp.name}** - ${emp.designation} (${emp.department}) - Salary: $${emp.salary.toLocaleString()}`).join('\n\n');
         }
         break;
       }
