@@ -4,6 +4,9 @@ A conversational AI assistant integrated with Microsoft Teams that allows users 
 
 The project features a modular, unified server architecture and supports offline testing using the **Teams App Test Tool** as well as live cloud deployment to **Azure App Service**.
 
+> [!NOTE]  
+> **Current Project Status:** This project is currently configured and run in **Local Simulation Mode** using the **Microsoft Teams App Test Tool** (`teamsapptester`). It is simulated entirely in your browser sandbox without requiring live Azure Bot Service registration or real Microsoft Teams publishing. Real Teams deployment steps are provided below for future production use.
+
 ---
 
 ## Key Features
