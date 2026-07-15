@@ -21,7 +21,7 @@ const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
   MicrosoftAppId: process.env.MicrosoftAppId,
   MicrosoftAppPassword: process.env.MicrosoftAppPassword,
   MicrosoftAppTenantId: process.env.MicrosoftAppTenantId,
-  MicrosoftAppType: process.env.MicrosoftAppType || 'MultiTenant'
+  MicrosoftAppType: process.env.MicrosoftAppType || 'SingleTenant'
 });
 
 const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
