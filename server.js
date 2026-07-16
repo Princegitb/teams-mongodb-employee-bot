@@ -296,14 +296,32 @@ Rules:
           }
         } else if (employees.length === 1) {
           const emp = employees[0];
-          reply = `Here are the details for **${emp.name}**:\n\n` +
-            `• **Employee ID:** ${emp.employeeId}\n` +
-            `• **Designation:** ${emp.designation}\n` +
-            `• **Department:** ${emp.department}\n` +
-            `• **Email:** ${emp.email}\n` +
-            `• **Phone:** ${emp.phone}\n` +
-            `• **City:** ${emp.city}\n` +
-            `• **Salary:** $${emp.salary.toLocaleString()}/year\n`;
+          const queryLower = message.toLowerCase();
+          
+          if (queryLower.includes('salary')) {
+            reply = `The salary of **${emp.name}** is **$${emp.salary.toLocaleString()}/year**.`;
+          } else if (queryLower.includes('email')) {
+            reply = `The email address of **${emp.name}** is **${emp.email}**.`;
+          } else if (queryLower.includes('phone') || queryLower.includes('number') || queryLower.includes('contact')) {
+            reply = `The phone number of **${emp.name}** is **${emp.phone}**.`;
+          } else if (queryLower.includes('city') || queryLower.includes('location') || queryLower.includes('live')) {
+            reply = `**${emp.name}** is located in **${emp.city}**.`;
+          } else if (queryLower.includes('department') || queryLower.includes('dept')) {
+            reply = `**${emp.name}** works in the **${emp.department}** department.`;
+          } else if (queryLower.includes('designation') || queryLower.includes('role') || queryLower.includes('job') || queryLower.includes('position')) {
+            reply = `The designation of **${emp.name}** is **${emp.designation}**.`;
+          } else if (queryLower.includes('id')) {
+            reply = `The employee ID of **${emp.name}** is **${emp.employeeId}**.`;
+          } else {
+            reply = `Here are the details for **${emp.name}**:\n\n` +
+              `• **Employee ID:** ${emp.employeeId}\n` +
+              `• **Designation:** ${emp.designation}\n` +
+              `• **Department:** ${emp.department}\n` +
+              `• **Email:** ${emp.email}\n` +
+              `• **Phone:** ${emp.phone}\n` +
+              `• **City:** ${emp.city}\n` +
+              `• **Salary:** $${emp.salary.toLocaleString()}/year\n`;
+          }
         } else {
           reply = `I found multiple employees matching "${name}":\n\n` +
             employees.map(emp => `• **${emp.name}** (${emp.designation} in ${emp.department})`).join('\n\n') +
