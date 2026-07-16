@@ -5,6 +5,7 @@ const path = require('path');
 require('dotenv').config();
 const { GoogleGenAI } = require('@google/genai');
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+console.log('[Gemini Initializer] API Key present in environment:', !!process.env.GEMINI_API_KEY);
 
 const Employee = require('./models/Employee');
 const { parseMessage } = require('./services/parser');
@@ -585,7 +586,7 @@ app.post('/chat', async (req, res) => {
           }));
 
           const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             contents: `You are an AI Employee Assistant for a company.
 You have access to the employee database below:
 
