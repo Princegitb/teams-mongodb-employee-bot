@@ -250,21 +250,40 @@ app.post('/chat', async (req, res) => {
         });
 
         if (employees.length === 0) {
-          // typos / did you mean fuzzy match recommendations
-          const allEmps = await Employee.find({}, 'name');
-          const suggestions = allEmps
-            .map(emp => {
-              const dist = getLevenshteinDistance(name.toLowerCase(), emp.name.toLowerCase());
-              return { name: emp.name, dist };
-            })
-            .filter(item => item.dist <= 4 || item.name.toLowerCase().includes(name.toLowerCase()))
-            .sort((a, b) => a.dist - b.dist)
-            .slice(0, 3)
-            .map(item => `• **${item.name}**`);
+          // Fallback to Gemini AI since direct name query yielded no database records (e.g. false positive or conversation)
+          try {
+            const allEmployees = await Employee.find({});
+            const employeeContext = allEmployees.map(emp => ({
+              employeeId: emp.employeeId,
+              name: emp.name,
+              department: emp.department,
+              designation: emp.designation,
+              salary: emp.salary,
+              email: emp.email,
+              phone: emp.phone,
+              city: emp.city
+            }));
 
-          reply = `No exact match found for "${name}".`;
-          if (suggestions.length > 0) {
-            reply += `\n\nDid you mean:\n\n` + suggestions.join('\n\n');
+            const response = await ai.models.generateContent({
+              model: 'gemini-3.5-flash',
+              contents: `You are an AI Employee Assistant.
+You have access to the employee database below:
+
+${JSON.stringify(employeeContext, null, 2)}
+
+User's Input: "${message}"
+
+Rules:
+1. Provide a direct, friendly, and helpful response.
+2. If the user's input is general conversation, feedback, or a reaction (like "good", "oh good", "ok", "nice"), reply naturally.
+3. If they were looking for a specific employee name that does not exist in the database, politely state that no employee was found matching that name.
+4. Format your response using clean Markdown.`
+            });
+
+            reply = response.text;
+          } catch (error) {
+            console.error('[Gemini Fallback Error]:', error);
+            reply = `No exact match found for "${name}".`;
           }
         } else if (employees.length === 1) {
           const emp = employees[0];
