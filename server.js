@@ -133,7 +133,16 @@ app.post('/chat', async (req, res) => {
 
   try {
     // 1. Analyze user message via NLP parser service
-    const parsed = parseMessage(message);
+    let parsed = parseMessage(message);
+
+    // Check if user is asking to write/draft/generate content (e.g. an email) using employee data.
+    // If so, override local intent to 'unknown' to bypass local DB card formatting and let Gemini handle it.
+    const normalizedMsg = message.toLowerCase();
+    const isGenerationTask = /\b(write|draft|email|congratulate|congratulations|template|message|compose)\b/i.test(normalizedMsg);
+    if (isGenerationTask) {
+      parsed.intent = 'unknown';
+    }
+
     const {
       intent, department, name, designation, city, email, phone,
       numbers, rangeOperator, sortDirection, allNames, allDepts,
@@ -158,7 +167,7 @@ app.post('/chat', async (req, res) => {
       }
 
       case 'list_all': {
-        const query = Employee.find({}, 'name department designation');
+        const query = Employee.find({}, 'name');
         if (sortDirection === 'desc') {
           query.sort({ name: -1 });
         } else {
@@ -169,7 +178,7 @@ app.post('/chat', async (req, res) => {
           reply = 'No employees found.';
         } else {
           reply = `Here is the list of all employees:\n\n` +
-            employees.map(emp => `• **${emp.name}** - ${emp.designation} (${emp.department})`).join('\n\n');
+            employees.map(emp => `• **${emp.name}**`).join('\n\n');
         }
         break;
       }
