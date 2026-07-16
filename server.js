@@ -138,7 +138,7 @@ app.post('/chat', async (req, res) => {
     // Check if user is asking to write/draft/generate content (e.g. an email) using employee data.
     // If so, override local intent to 'unknown' to bypass local DB card formatting and let Gemini handle it.
     const normalizedMsg = message.toLowerCase();
-    const isGenerationTask = /\b(write|draft|email|congratulate|congratulations|template|message|compose)\b/i.test(normalizedMsg);
+    const isGenerationTask = /\b(write|draft|email|congratulate|congratulations|template|message|compose|create|make|generate)\b/i.test(normalizedMsg);
     if (isGenerationTask) {
       parsed.intent = 'unknown';
     }
