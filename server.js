@@ -286,7 +286,8 @@ Rules:
 1. Provide a direct, friendly, and helpful response.
 2. If the user's input is general conversation, feedback, or a reaction (like "good", "oh good", "ok", "nice"), reply naturally.
 3. If they were looking for a specific employee name that does not exist in the database, politely state that no employee was found matching that name.
-4. Format your response using clean Markdown.`
+4. If the user asks for a specific attribute of an employee (such as salary, email, phone, city, department, or designation), output ONLY that requested attribute and the employee's name. Do NOT list other details (like department, designation, or ID) unless they explicitly asked for all details.
+5. Format your response using clean Markdown.`
             });
 
             reply = response.text;
@@ -641,8 +642,8 @@ ${JSON.stringify(employeeContext, null, 2)}
 User's Question: "${message}"
 
 Rules:
-1. Provide a direct, professional, and concise answer to the user's question using the database above.
-2. If the user asks for email, phone, designation, or salary of a specific employee, locate them and provide the details.
+1. Provide a direct, professional, and concise answer using the database above.
+2. If the user asks for a specific attribute of an employee (such as salary, email, phone, city, department, or designation), output ONLY that requested attribute and the employee's name. Do NOT list other details (like their department, designation, or ID) unless they explicitly asked for "all details" or a "profile". For example, if they ask for "salary of prinve", correct the spelling to Prince and return only his salary.
 3. If the user asks you to write an email, schedule/draft a message, or perform text generation using the data, feel free to do so in a helpful manner.
 4. If the user asks for something completely unrelated to the company, employees, or general conversational greetings, politely decline and steer the conversation back to employee assistance.
 5. Format your response using clean Markdown compatible with MS Teams.`
