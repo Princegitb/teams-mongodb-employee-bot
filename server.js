@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const { GoogleGenAI } = require('@google/genai');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const Employee = require('./models/Employee');
 const { parseMessage } = require('./services/parser');
@@ -155,7 +157,7 @@ app.post('/chat', async (req, res) => {
       }
 
       case 'list_all': {
-        const query = Employee.find({}, 'name department designation salary');
+        const query = Employee.find({}, 'name department designation');
         if (sortDirection === 'desc') {
           query.sort({ name: -1 });
         } else {
@@ -166,7 +168,7 @@ app.post('/chat', async (req, res) => {
           reply = 'No employees found.';
         } else {
           reply = `Here is the list of all employees:\n\n` +
-            employees.map(emp => `• **${emp.name}** - ${emp.designation} (${emp.department}) - Salary: $${emp.salary.toLocaleString()}`).join('\n\n');
+            employees.map(emp => `• **${emp.name}** - ${emp.designation} (${emp.department})`).join('\n\n');
         }
         break;
       }
@@ -568,15 +570,45 @@ app.post('/chat', async (req, res) => {
 
       case 'unknown':
       default: {
-        reply = `I'm sorry, I didn't quite understand that question. Try asking one of these:\n\n` +
-          `• *How many employees work in HR?*\n` +
-          `• *Top 5 highest paid employees*\n` +
-          `• *Compare Finance and IT*\n` +
-          `• *List job roles*\n` +
-          `• *Compare Rahul and Bob*\n` +
-          `• *Employees earning between 60000 and 80000*\n` +
-          `• *Show employees from Delhi*\n` +
-          `• *Aman's email*`;
+        try {
+          // Fetch all employees to give Gemini complete database context
+          const employees = await Employee.find({});
+          const employeeContext = employees.map(emp => ({
+            employeeId: emp.employeeId,
+            name: emp.name,
+            department: emp.department,
+            designation: emp.designation,
+            salary: emp.salary,
+            email: emp.email,
+            phone: emp.phone,
+            city: emp.city
+          }));
+
+          const response = await ai.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: `You are an AI Employee Assistant for a company.
+You have access to the employee database below:
+
+${JSON.stringify(employeeContext, null, 2)}
+
+User's Question: "${message}"
+
+Rules:
+1. Provide a direct, professional, and concise answer to the user's question using the database above.
+2. If the user asks for email, phone, designation, or salary of a specific employee, locate them and provide the details.
+3. If the user asks you to write an email, schedule/draft a message, or perform text generation using the data, feel free to do so in a helpful manner.
+4. If the user asks for something completely unrelated to the company, employees, or general conversational greetings, politely decline and steer the conversation back to employee assistance.
+5. Format your response using clean Markdown compatible with MS Teams.`
+          });
+
+          reply = response.text;
+        } catch (error) {
+          console.error('[Gemini API Error]:', error);
+          reply = `I'm sorry, I didn't quite understand that question, and I had trouble reaching my AI engine. Try asking one of these:\n\n` +
+            `• *How many employees work in HR?*\n` +
+            `• *Top 5 highest paid employees*\n` +
+            `• *Compare Finance and IT*`;
+        }
         break;
       }
     }

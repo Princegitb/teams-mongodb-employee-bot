@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.15/MicrosoftTeams.schema.json",
   "manifestVersion": "1.15",
   "version": "1.0.0",
-  "id": "1261ece3-ac58-4067-9416-cde49b8dc288",
+  "id": "66275274-534e-43fe-8230-d052237bc342",
   "packageName": "com.microsoft.teams.employeechat",
   "developer": {
     "name": "Developer",
@@ -25,7 +25,7 @@
   "accentColor": "#6366F1",
   "bots": [
     {
-      "botId": "1261ece3-ac58-4067-9416-cde49b8dc288",
+      "botId": "66275274-534e-43fe-8230-d052237bc342",
       "scopes": [
         "personal",
         "groupchat"

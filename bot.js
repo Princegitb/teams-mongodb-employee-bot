@@ -15,7 +15,8 @@ class TeamsBot extends ActivityHandler {
 
       if (text) {
         try {
-          const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005/chat';
+          const port = process.env.PORT || 3000;
+          const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}/chat`;
 
           // Forward user's Teams message to the existing Express backend
           const response = await fetch(backendUrl, {
