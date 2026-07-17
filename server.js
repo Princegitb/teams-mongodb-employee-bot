@@ -22,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// Initialize credentials factory using Microsoft App variables from .env
+
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
   MicrosoftAppId: process.env.MicrosoftAppId,
   MicrosoftAppPassword: process.env.MicrosoftAppPassword,
@@ -32,10 +32,9 @@ const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
 
 const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
 
-// Create the CloudAdapter that handles communication with Azure Bot Service / Microsoft Teams
 const adapter = new CloudAdapter(botFrameworkAuthentication);
 
-// Catch-all for unhandled adapter turn errors
+
 adapter.onTurnError = async (context, error) => {
   console.error(`\n [Teams Bot Server Error] Unhandled error: ${error}`);
   try {
@@ -51,15 +50,15 @@ adapter.onTurnError = async (context, error) => {
   await context.sendActivity('The bot encountered an error or bug during processing.');
 };
 
-// Instantiate our Teams Bot
+
 const bot = new TeamsBot();
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Sample Data to seed if Database is empty
+
 const sampleEmployees = [
   { employeeId: 'EMP001', name: 'Alice Johnson', department: 'HR', designation: 'HR Manager', salary: 75000, email: 'alice.j@company.com', phone: '1234567890', city: 'New York' },
   { employeeId: 'EMP002', name: 'Bob Smith', department: 'IT', designation: 'Senior Engineer', salary: 95000, email: 'bob.s@company.com', phone: '1234567891', city: 'San Francisco' },
@@ -73,7 +72,7 @@ const sampleEmployees = [
   { employeeId: 'EMP010', name: 'Julia Roberts', department: 'Sales', designation: 'Sales Manager', salary: 85000, email: 'julia.r@company.com', phone: '1234567899', city: 'Dallas' }
 ];
 
-// Seed Database function
+
 async function seedDatabase() {
   try {
     const count = await Employee.countDocuments();
@@ -89,7 +88,7 @@ async function seedDatabase() {
   }
 }
 
-// Connect to MongoDB Atlas
+
 if (!MONGODB_URI) {
   console.error('CRITICAL: MONGODB_URI environment variable is not defined in .env');
   process.exit(1);
